@@ -68,7 +68,10 @@ checksums: packages
 	$(BUILD) checksums
 
 # Helper targets
-.PHONY: help
+.PHONY: help validate
+
+validate:
+	./tests/validate-static.sh "$(CURDIR)"
 
 help:
 	@echo "Flashforge AD5M Klipper Mod Build System"
@@ -117,6 +120,7 @@ help:
 	@echo ""
 	@echo "UTILITY TARGETS:"
 	@echo "  help                   - Show this help message"
+	@echo "  validate               - Run host-side static integration checks"
 	@echo ""
 	@echo "NOTES:"
 	@echo "  - Plugins are automatically detected from build_scripts/buildroot/configs/plugin-*"

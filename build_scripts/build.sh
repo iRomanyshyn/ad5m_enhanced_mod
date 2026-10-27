@@ -1,4 +1,4 @@
-# !/bin/bash
+#!/bin/bash
 # Build Wrapper Script for AD5M Klipper Mod
 set -e
 
