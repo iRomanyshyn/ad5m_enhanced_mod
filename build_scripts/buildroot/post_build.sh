@@ -25,32 +25,6 @@ fi
 # Paths
 TARGET_ROOT="$TARGET_DIR"
 
-TSLIB_POINTERCAL="/mnt/orig_root/opt/tslib-1.12/etc/pointercal"
-TSLIB_TSCONF="/mnt/orig_root/opt/tslib-1.12/etc/ts.conf"
-
-install_tslib_requirements() {
-    log_info "Initiating installation of TSLIB (Touchscreen Library) configuration files..."
-
-    # Before creating new symbolic links, it's vital to ensure any old, stale, or
-    # conflicting 'ts.conf' file is completely removed.
-    log_info "  Checking for and removing any existing TSLIB configuration file at $TARGET_ROOT/etc/ts.conf to prevent conflicts."
-    rm -f "$TARGET_ROOT/etc/ts.conf"
-
-    # Create a symbolic link for 'pointercal'. This specific file contains the essential
-    # calibration data for the touchscreen,
-    log_info "  Creating symbolic link for TSLIB touchscreen calibration data: $TARGET_ROOT/etc/pointercal -> $TSLIB_POINTERCAL."
-    ln -fs "$TSLIB_POINTERCAL" "$TARGET_ROOT/etc/pointercal"
-
-    # Create a symbolic link for 'ts.conf'. This is the primary configuration file
-    # for TSLIB, which dictates precisely how raw touchscreen events are processed
-    # and interpreted by the system.
-    log_info "  Creating symbolic link for TSLIB's main configuration file: $TARGET_ROOT/etc/ts.conf -> $TSLIB_TSCONF."
-    ln -fs "$TSLIB_TSCONF" "$TARGET_ROOT/etc/ts.conf"
-
-    log_info "TSLIB configuration setup completed successfully."
-}
-
-
 log_info "Deactivating 'S35iptables' initscript (if exists)."
 chmod -x "$TARGET_ROOT/etc/init.d/S35iptables" || true
 
@@ -110,16 +84,6 @@ if ! grep -q dbus "$TARGET_ROOT/etc/shadow"; then
 fi
 log_info "D-Bus user and group configuration verified and any missing entries have been added."
 
-
-if [ "$BUILD_VARIANT" == "klipperscreen" ]; then
-    log_info "Detected 'klipperscreen' build variant. Commencing Klipperscreen-specific setup procedures."
-    # Klipperscreen relies heavily on TSLIB for its touchscreen input capabilities.
-    # Therefore, the TSLIB configuration is installed as part of its setup.
-    install_tslib_requirements
-    log_info "Klipperscreen-specific setup successfully completed."
-else
-    log_info "Skipping screen-specific configuration steps."
-fi
 
 for overlay in "$BUILD_OVERLAYS"/plugin-*; do
     plugin_name="${overlay##*/plugin-}"

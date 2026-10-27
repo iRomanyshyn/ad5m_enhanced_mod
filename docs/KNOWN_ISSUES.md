@@ -4,7 +4,7 @@ This section documents some known issues that exist, but are unlikely to be fixe
 
 * Printer resource limitations and consequences of system overload:  
 The 5M (PRO) has very limited system resources, especially limited ram and slow flash. In general the mod is stable for everyday use
-with all features for printing and control of the printer functions, including KlipperScreen and Webcam. However, if heavy background task are attemped while printing, 
+with all features for printing and control of the printer functions, including Webcam. However, if heavy background task are attemped while printing,
 i.e. rendering a timelapse or copying huge amounts of data to the system it will very likely make the print fail (so don't do it).
 
 * Sporadic MCU timeouts during SHAPER_CALIBRATE:  

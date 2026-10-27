@@ -39,18 +39,6 @@ Passphrase=********
 
 Install the mod as described in [Install](INSTALL.md) and after installation the printer should connect to your network.
 
-### Configure with KlipperScreen
-
-Once klipperscreen has started:
-* Press settings
-* Press wifi
-* Wait for the networks to show up
-  * If no networks are shown, go back and retry the wifi button. 
-* Once your SSID shows up, press the arrow button next to it
-* Enter the preshared key. Press save to continue. 
-  * This might take a moment. If the screen does not proceed after about 10 seconds, press the save button again.
-
-
 ## Additional information
 
 For more commands and advanced usage of iwd, see the [linux kernel page for iwd](https://iwd.wiki.kernel.org/gettingstarted) or the [arch linux example page](https://wiki.archlinux.org/title/iwd).
