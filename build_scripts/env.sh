@@ -9,8 +9,10 @@ export GIT_ROOT=$(realpath "$ENV_DIR/..")
 export BUILD_SCRIPTS=$GIT_ROOT/build_scripts
 # Build system overlays
 export BUILD_OVERLAYS=$GIT_ROOT/build_overlays
-# Location for all build artifacts
-export BUILD_OUT=$GIT_ROOT/build_output
+# Location for all build artifacts.  AD5M_BUILD_OUT is intentionally an
+# opt-in override for disposable validation output; ordinary builds retain the
+# repository-local default.
+export BUILD_OUT=${AD5M_BUILD_OUT:-$GIT_ROOT/build_output}
 # Location for all packaged artifcates we want to keep
 export BUILD_PACKAGE=$BUILD_OUT/packages
 
