@@ -9,7 +9,9 @@ BR2_TARGET_ROOTFS_TAR=y
 # Toolchain Overrides (use SDK)
 BR2_TOOLCHAIN_EXTERNAL=y
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM=y
-BR2_TOOLCHAIN_EXTERNAL_PATH="../../build_output/buildroot/sdk/host/"
+# The build wrapper writes BR2_TOOLCHAIN_EXTERNAL_PATH into each generated
+# variant configuration after merging this fragment. It must be derived from
+# BUILDROOT_SDK rather than kept as a stale, machine-specific relative path.
 BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX="$(ARCH)-buildroot-linux-gnueabihf"
 BR2_TOOLCHAIN_EXTERNAL_GCC_14=y
 BR2_TOOLCHAIN_EXTERNAL_HEADERS_5_4=y

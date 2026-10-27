@@ -213,6 +213,13 @@ defconfig_variant() {
   	fi
   	
   	"$BUILDROOT_GIT"/support/kconfig/merge_config.sh "${merge_configs[@]}"
+	# Buildroot resolves BR2_TOOLCHAIN_EXTERNAL_PATH against its source tree,
+	# whereas the SDK is owned by this repository's output tree. Set the
+	# generated configuration from BUILDROOT_SDK so canonical sibling checkouts
+	# and reviewed AD5M_BUILDROOT_DIR overrides both use the exact SDK we built.
+	sdk_host_dir=$(realpath -m "$BUILDROOT_SDK/host")
+	sed -i '/^BR2_TOOLCHAIN_EXTERNAL_PATH=/d' .config
+	printf 'BR2_TOOLCHAIN_EXTERNAL_PATH="%s"\n' "$sdk_host_dir" >> .config
     popd > /dev/null
 }
 
