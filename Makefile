@@ -1,7 +1,7 @@
 # Top Level Makefile for Flashfore AD5M Klipper Mod
 SHELL := /bin/bash
 BUILD := build_scripts/build.sh
-VARIANTS = lite klipperscreen guppyscreen
+VARIANTS = lite klipperscreen
 
 CONFIGS_DIR := build_scripts/buildroot/configs
 AVAILABLE_PLUGINS := $(patsubst $(CONFIGS_DIR)/plugin-%,%,$(wildcard $(CONFIGS_DIR)/plugin-*))
@@ -115,7 +115,6 @@ help:
 	@echo ""
 	@echo "  # Build multiple variants with different plugins"
 	@echo "  make klipperscreen WITH_PLUGINS=\"shaketune moonraker_tg\""
-	@echo "  make guppyscreen WITH_PLUGINS=\"shaketune\""
 	@echo ""
 	@echo "CLEAN TARGETS:"
 	@echo "  sdk_clean              - Clean SDK build directory"

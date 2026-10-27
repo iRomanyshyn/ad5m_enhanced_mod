@@ -117,20 +117,6 @@ if [ "$BUILD_VARIANT" == "klipperscreen" ]; then
     # Therefore, the TSLIB configuration is installed as part of its setup.
     install_tslib_requirements
     log_info "Klipperscreen-specific setup successfully completed."
-
-elif [ "$BUILD_VARIANT" == "guppyscreen" ]; then
-    log_info "Detected 'guppyscreen' build variant. Commencing Guppyscreen-specific setup procedures."
-    # Similar to Klipperscreen, Guppyscreen also utilizes TSLIB for handling
-    # touchscreen interactions, so the TSLIB configuration is a prerequisite.
-    install_tslib_requirements
-
-    # Create a symbolic link for Guppyscreen's primary configuration file.
-    # This crucial link ensures that the runtime configuration file for Guppyscreen
-    # is accessible from a user-editable location within the 'printer_data' directory,
-    # allowing for easy customization without modifying core system files.
-    log_info "  Creating symbolic link for Guppyscreen's main configuration file: /opt/guppyscreen/guppyconfig.json -> /root/printer_data/config/guppyconfig.json. This links the runtime configuration to a user-editable location."
-    ln -fs /root/printer_data/config/guppyconfig.json "$TARGET_ROOT/opt/guppyscreen/guppyconfig.json"
-    log_info "Guppyscreen-specific setup successfully completed."
 else
     log_info "Skipping screen-specific configuration steps."
 fi
