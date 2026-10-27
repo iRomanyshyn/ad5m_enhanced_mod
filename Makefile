@@ -68,10 +68,13 @@ checksums: packages
 	$(BUILD) checksums
 
 # Helper targets
-.PHONY: help lint validate validate-config
+.PHONY: help lint macro-golden validate validate-config
 
 lint:
 	./tests/lint-host.sh "$(CURDIR)"
+
+macro-golden:
+	KLIPPER_SOURCE_DIR="$(KLIPPER_SOURCE_DIR)" ./tests/validate-macro-golden.py "$(CURDIR)"
 
 validate: lint
 	./tests/validate-static.sh "$(CURDIR)"
@@ -127,6 +130,7 @@ help:
 	@echo "UTILITY TARGETS:"
 	@echo "  help                   - Show this help message"
 	@echo "  lint                   - Run portable host-side source lint checks"
+	@echo "  macro-golden           - Render safe macros using an official Klipper checkout"
 	@echo "  validate               - Run host-side static integration checks"
 	@echo "  validate-config        - Configure lite in disposable Buildroot output"
 	@echo ""

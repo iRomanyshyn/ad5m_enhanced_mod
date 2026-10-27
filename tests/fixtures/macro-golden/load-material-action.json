@@ -1,0 +1,15 @@
+{
+  "official_klipper": {
+    "remote": "https://github.com/Klipper3d/klipper.git",
+    "tag": "v0.13.0",
+    "commit": "61c0c8d2ef40340781835dd53fb04cc7a454e37a",
+    "gcode_macro_sha256": "4e3ebcda1bd9facb7e9805dcf37a37d943a1979b9e994050cd16ae67188c2401"
+  },
+  "macro_file": "printer_configs/macros.cfg",
+  "macro_section": "gcode_macro _LOAD_MATERIAL_ACTION",
+  "invocation": "_LOAD_MATERIAL_ACTION",
+  "allowed_commands": [
+    "RESPOND"
+  ],
+  "expected_output": "tests/fixtures/macro-golden/load-material-action.expected.gcode"
+}
