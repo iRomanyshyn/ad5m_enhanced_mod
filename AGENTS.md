@@ -23,9 +23,11 @@ Buildroot fixes belong in `../buildroot-flashforge-ad5m` only after checking
 the official 2025.02 LTS branch and newer official Buildroot for a suitable
 fix.
 
-The current `submodules/buildroot` relationship is historical build-system
-coupling. Do not replace, initialize, or update it as incidental work; changes
-to that relationship require a scoped coordination task.
+The build uses the canonical sibling `../buildroot-flashforge-ad5m`, pinned by
+`build_scripts/buildroot/buildroot-revision`. The wrapper refuses a dirty or
+different Buildroot revision and will not reuse output configured from another
+source. Update this contract only through a scoped coordination task; never add
+an unreviewed Buildroot submodule or third-party source dependency.
 
 ## Safety and verification
 

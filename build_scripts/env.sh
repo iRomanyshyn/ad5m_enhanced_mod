@@ -5,8 +5,6 @@ ENV_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 # Git root dir
 export GIT_ROOT=$(realpath "$ENV_DIR/..")
-# Location of git submodules
-export GIT_SUBMODULES=$GIT_ROOT/submodules
 # Build system scripts / configuration files
 export BUILD_SCRIPTS=$GIT_ROOT/build_scripts
 # Build system overlays
@@ -16,11 +14,15 @@ export BUILD_OUT=$GIT_ROOT/build_output
 # Location for all packaged artifcates we want to keep
 export BUILD_PACKAGE=$BUILD_OUT/packages
 
-export BUILDROOT_GIT=$GIT_SUBMODULES/buildroot
+# Canonical Buildroot source. The revision is checked by build.sh before any
+# Buildroot output is configured. AD5M_BUILDROOT_DIR is useful for a separate
+# checkout, but it must match the tracked buildroot-revision contract.
+export BUILDROOT_GIT=${AD5M_BUILDROOT_DIR:-$GIT_ROOT/../buildroot-flashforge-ad5m}
 export BUILDROOT_OUT=$BUILD_OUT/buildroot
 export BUILDROOT_SDK=$BUILDROOT_OUT/sdk
 export BUILDROOT_EXT=$BUILD_SCRIPTS/buildroot
 export BUILDROOT_CONFIGS=$BUILD_SCRIPTS/buildroot/configs
+export BUILDROOT_CONTRACT_FILE=$BUILD_SCRIPTS/buildroot/buildroot-revision
 
 ### Log helper functions
 

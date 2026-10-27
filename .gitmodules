@@ -1,3 +1,0 @@
-[submodule "submodules/buildroot"]
-	path = submodules/buildroot
-	url = git@github.com:loss-and-quick/buildroot-flashforge-5m.git

@@ -10,15 +10,61 @@ MULTICORE=-j$(nproc)
 ###### Buildroot Common Build Helper Functions ######
 #####################################################
 
+# Verify that a build uses the reviewed Buildroot tree recorded in this
+# repository. Do not silently reuse output configured by another Buildroot
+# source: it makes a package impossible to reproduce and can mix host tools.
+verify_buildroot_contract()
+{
+	if [ ! -r "$BUILDROOT_CONTRACT_FILE" ]; then
+		log_error "Buildroot contract file not found: $BUILDROOT_CONTRACT_FILE"
+		exit 1
+	fi
+
+	expected_revision=$(tr -d '[:space:]' < "$BUILDROOT_CONTRACT_FILE")
+	if ! [[ "$expected_revision" =~ ^[0-9a-f]{40}$ ]]; then
+		log_error "Invalid Buildroot revision in $BUILDROOT_CONTRACT_FILE"
+		exit 1
+	fi
+
+	if [ ! -d "$BUILDROOT_GIT" ] || [ ! -f "$BUILDROOT_GIT/Makefile" ]; then
+		log_error "Canonical Buildroot checkout not found: $BUILDROOT_GIT"
+		log_error "Clone ../buildroot-flashforge-ad5m or set AD5M_BUILDROOT_DIR to a reviewed checkout."
+		exit 1
+	fi
+
+	BUILDROOT_GIT=$(realpath "$BUILDROOT_GIT")
+	actual_revision=$(git -C "$BUILDROOT_GIT" rev-parse HEAD 2>/dev/null) || {
+		log_error "Buildroot source is not a Git checkout: $BUILDROOT_GIT"
+		exit 1
+	}
+
+	if [ "$actual_revision" != "$expected_revision" ]; then
+		log_error "Buildroot revision mismatch: expected $expected_revision, found $actual_revision"
+		log_error "Update both repositories through a reviewed AD5M-001 contract change."
+		exit 1
+	fi
+
+	if [ -n "$(git -C "$BUILDROOT_GIT" status --porcelain --untracked-files=normal)" ]; then
+		log_error "Buildroot checkout has uncommitted changes: $BUILDROOT_GIT"
+		exit 1
+	fi
+}
+
 # initialize a buildroot build dir with config
 buildroot_prepare() # args: path config_generator
 {
 	br_path="$1";
 	br_name=$(basename "$1")
 	br_config_generator="$2"
+	verify_buildroot_contract
 
 	mkdir -p "$br_path"
 	pushd "$br_path" > /dev/null
+
+	if [ -f Makefile ] && ! grep -Fq "MAKEARGS := -C $BUILDROOT_GIT" Makefile; then
+		log_error "$br_name was configured with a different Buildroot source. Run the corresponding clean target first."
+		exit 1
+	fi
 
 	# setup make environment, use external tree
     if [ ! -f Makefile ]; then
@@ -233,7 +279,7 @@ checksums()
 }
 
 cd $GIT_ROOT
-GIT_VERSION=$(git describe)
+GIT_VERSION=$(git describe --tags --always --dirty)
 
 # run command
 $@
