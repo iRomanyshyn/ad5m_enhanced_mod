@@ -4,12 +4,12 @@
 #
 ################################################################################
 
-GUPPYSCREEN_VERSION = origin/flashforge_ad5m 
+GUPPYSCREEN_VERSION = fdca5728001f7a6f6ce774dcfa3998f8b96e6878
 GUPPYSCREEN_SITE = https://github.com/consp/guppyscreen.git
 GUPPYSCREEN_SITE_METHOD = git
 GUPPYSCREEN_GIT_SUBMODULES = yes
 GUPPYSCREEN_LICENSE = GPL-3.0+
-GUPPYSCREEN_LICENSE_FILES = COPYING
+GUPPYSCREEN_LICENSE_FILES = LICENSE
 GUPPYSCREEN_DEPENDENCIES = libevdev
 
 define GUPPYSCREEN_BUILD_CMDS

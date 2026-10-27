@@ -1,0 +1,5 @@
+# Locally verified against the upstream PyPI source archive on 2026-10-27.
+sha256  0145e43d89664cfe1a2e533adc75adafed82fe2da404b4bbb6b026c0157bdb31  zipp-3.20.0.tar.gz
+
+# Locally computed from the extracted source archive.
+sha256  86da0f01aeae46348a3c3d465195dc1ceccde79f79e87769a64b8da04b2a4741  LICENSE

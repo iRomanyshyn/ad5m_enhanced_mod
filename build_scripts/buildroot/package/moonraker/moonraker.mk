@@ -4,7 +4,8 @@
 #
 ################################################################################
 
-MOONRAKER_VERSION = v0.9.3
+# Reviewed commit behind upstream tag v0.9.3.
+MOONRAKER_VERSION = 71f9e677b81afcc6b99dd5002f595025c38edc7b
 MOONRAKER_SITE = https://github.com/Arksine/moonraker.git
 MOONRAKER_SITE_METHOD = git
 
@@ -24,14 +25,10 @@ MOONRAKER_DEPENDENCIES = \
 	python-zeroconf \
 	python-jinja2 \
 	python-dbus-fast \
-	python-apprise \
-	python-ldap3 \
 	python-periphery \
 	python-importlib-metadata \
 	python-streaming-form-data \
-	python-preprocess-cancellation \
 	python-uvloop \
-	python-pre-commit \
 	python-libnacl
 
 define MOONRAKER_INSTALL_TARGET_CMDS

@@ -4,7 +4,8 @@
 #
 ################################################################################
 
-KLIPPER_VERSION = v0.13.0-285-gfc2aaae69-ffadm5
+# Reviewed commit behind upstream tag v0.13.0-285-gfc2aaae69-ffadm5.
+KLIPPER_VERSION = fc2aaae692b5f703420915390a3dcb8cd514c384
 KLIPPER_SITE = https://github.com/xblax/klipper.git
 KLIPPER_SITE_METHOD = git
 
@@ -20,7 +21,6 @@ KLIPPER_DEPENDENCIES = \
 	python-serial \
 	python-can \
 	python-setuptools \
-	python-msgspec \
 	python-numpy
 
 ifneq ($(BR2_PACKAGE_KLIPPER_CONFIGS),)

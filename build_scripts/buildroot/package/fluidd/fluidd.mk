@@ -7,6 +7,9 @@
 FLUIDD_VERSION = v1.34.4
 FLUIDD_SITE = https://github.com/fluidd-core/fluidd/releases/download/$(FLUIDD_VERSION)
 FLUIDD_SOURCE = fluidd.zip
+FLUIDD_LICENSE = GPL-3.0
+# The upstream binary release asset does not include a license file. Its source
+# tag v1.34.4 contains LICENSE; retain the asset hash in fluidd.hash.
 
 define FLUIDD_EXTRACT_CMDS 
 	$(UNZIP) $(FLUIDD_DL_DIR)/$(FLUIDD_SOURCE) -d $(@D)/

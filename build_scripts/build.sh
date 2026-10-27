@@ -220,6 +220,21 @@ defconfig_variant() {
 	sdk_host_dir=$(realpath -m "$BUILDROOT_SDK/host")
 	sed -i '/^BR2_TOOLCHAIN_EXTERNAL_PATH=/d' .config
 	printf 'BR2_TOOLCHAIN_EXTERNAL_PATH="%s"\n' "$sdk_host_dir" >> .config
+	# Klipper's MCU configs are consumed by package build commands from the
+	# Buildroot output directory. Derive their paths from the repository root
+	# instead of relying on a fragment-relative path.
+	mcu_config_dir=$(realpath -m "$GIT_ROOT/build_scripts/components/mcu_configs/ffad5m")
+	sed -i '/^BR2_PACKAGE_KLIPPER_CONFIGS=/d' .config
+	printf 'BR2_PACKAGE_KLIPPER_CONFIGS="%s/eboard %s/mainboard"\n' \
+		"$mcu_config_dir" "$mcu_config_dir" >> .config
+	# Rootfs overlays are likewise interpreted relative to Buildroot's source
+	# tree. Generate absolute paths for the selected variant so the wrapper is
+	# independent of checkout layout.
+	overlay_common=$(realpath -m "$GIT_ROOT/build_overlays/common")
+	overlay_variant=$(realpath -m "$GIT_ROOT/build_overlays/variant-$variant")
+	sed -i '/^BR2_ROOTFS_OVERLAY=/d' .config
+	printf 'BR2_ROOTFS_OVERLAY="%s %s"\n' \
+		"$overlay_common" "$overlay_variant" >> .config
     popd > /dev/null
 }
 

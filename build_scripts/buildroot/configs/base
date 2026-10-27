@@ -105,7 +105,9 @@ BR2_PACKAGE_FFMPEG_EXTRACONF=""
 BR2_PACKAGE_X264=y
 
 BR2_PACKAGE_KLIPPER=y
-BR2_PACKAGE_KLIPPER_CONFIGS="../../build_scripts/components/mcu_configs/ffad5m/eboard ../../build_scripts/components/mcu_configs/ffad5m/mainboard"
+# The build wrapper writes BR2_PACKAGE_KLIPPER_CONFIGS into each generated
+# variant configuration from the repository root. Relative paths here are
+# resolved from the Buildroot output directory and are therefore not portable.
 
 BR2_PACKAGE_MOONRAKER=y
 

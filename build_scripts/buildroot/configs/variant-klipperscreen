@@ -1,7 +1,7 @@
 # KlipperScreen variant of AD5M Klipper Mod
 
-# Variant Overlays
-BR2_ROOTFS_OVERLAY="../../build_overlays/common ../../build_overlays/variant-klipperscreen"
+# The build wrapper writes BR2_ROOTFS_OVERLAY as absolute common and variant
+# overlay paths after merging this fragment.
 
 ## X11
 BR2_PACKAGE_PROVIDES_LIBGL="mesa3d"

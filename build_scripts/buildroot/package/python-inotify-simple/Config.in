@@ -1,0 +1,6 @@
+config BR2_PACKAGE_PYTHON_INOTIFY_SIMPLE
+	bool "python-inotify-simple"
+	help
+	  Minimal Python wrapper around Linux inotify.
+
+	  https://github.com/chrisjbillington/inotify_simple

@@ -1,0 +1,7 @@
+config BR2_PACKAGE_PYTHON_SMART_OPEN
+	bool "python-smart-open"
+	select BR2_PACKAGE_PYTHON_WRAPT
+	help
+	  Python library for streaming data from local and remote sources.
+
+	  https://github.com/piskvorky/smart_open

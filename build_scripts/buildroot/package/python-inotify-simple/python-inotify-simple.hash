@@ -1,0 +1,5 @@
+# Locally verified against the upstream PyPI source archive on 2026-10-27.
+sha256  8440ffe49c4ae81a8df57c1ae1eb4b6bfa7acb830099bfb3e305b383005cc128  inotify_simple-1.3.5.tar.gz
+
+# Locally computed from the extracted source archive.
+sha256  20fd17b8b0e786ae132dad3aa671f3a176cf2efb46eda4459ccf121510bc3811  LICENSE
