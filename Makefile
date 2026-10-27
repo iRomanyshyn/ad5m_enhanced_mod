@@ -68,9 +68,12 @@ checksums: packages
 	$(BUILD) checksums
 
 # Helper targets
-.PHONY: help validate validate-config
+.PHONY: help lint validate validate-config
 
-validate:
+lint:
+	./tests/lint-host.sh "$(CURDIR)"
+
+validate: lint
 	./tests/validate-static.sh "$(CURDIR)"
 
 validate-config:
@@ -123,6 +126,7 @@ help:
 	@echo ""
 	@echo "UTILITY TARGETS:"
 	@echo "  help                   - Show this help message"
+	@echo "  lint                   - Run portable host-side source lint checks"
 	@echo "  validate               - Run host-side static integration checks"
 	@echo "  validate-config        - Configure lite in disposable Buildroot output"
 	@echo ""
