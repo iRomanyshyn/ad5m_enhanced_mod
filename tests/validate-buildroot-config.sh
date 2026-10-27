@@ -63,6 +63,12 @@ grep -Fqx 'BR2_PACKAGE_MOONRAKER=y' "$config" || \
     fail "generated lite config does not enable Moonraker"
 grep -Fqx 'BR2_PACKAGE_USTREAMER=y' "$config" || \
     fail "generated lite config does not enable ustreamer"
+grep -Fqx '# BR2_PACKAGE_FFMPEG_NONFREE is not set' "$config" || \
+    fail "generated lite config enables unredistributable FFmpeg features"
+grep -Fqx 'BR2_PACKAGE_FFMPEG_GPL=y' "$config" || \
+    fail "generated lite config no longer selects the reviewed GPL FFmpeg profile"
+grep -Fqx 'BR2_PACKAGE_X264=y' "$config" || \
+    fail "generated lite config no longer provides the timelapse H.264 encoder"
 pass "lite configuration contains reviewed overlay and service selections"
 
 printf 'Buildroot configuration validation passed\n'

@@ -88,7 +88,10 @@ BR2_PACKAGE_NFS_UTILS_NFSV4=y
 BR2_PACKAGE_FFMPEG_ARCH_SUPPORTS=y
 BR2_PACKAGE_FFMPEG=y
 BR2_PACKAGE_FFMPEG_GPL=y
-BR2_PACKAGE_FFMPEG_NONFREE=y
+# Avoid an unredistributable FFmpeg configuration.  The selected timelapse
+# stack uses libx264, but no configured FFmpeg feature needs the separate
+# nonfree permission.
+# BR2_PACKAGE_FFMPEG_NONFREE is not set
 BR2_PACKAGE_FFMPEG_FFMPEG=y
 BR2_PACKAGE_FFMPEG_ENCODERS="libx264 mjpeg"
 BR2_PACKAGE_FFMPEG_DECODERS="mjpeg"
