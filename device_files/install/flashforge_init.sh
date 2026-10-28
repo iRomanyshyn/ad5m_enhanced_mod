@@ -49,12 +49,21 @@ do_setup()
     xzcat $WORK_DIR/img/install_start.img.xz > /dev/fb0
     # --------------------------------
 
-    # uninstall previous mod version if present - keep other data in .klipper_mod
-    rm -f $MOD_INIT_FILE
-    rm -f $MOD_INIT_FILE_OLD
-    rm -rf $CHROOT_DIR
+    # Check the complete compressed payload before changing an existing install.
+    # This is deliberately a preflight only: AD5M-019 owns transactional
+    # staging/rollback and release-authenticity verification.
+    if ! xz -t "$WORK_DIR/chroot.tar.xz"; then
+        echo "Invalid chroot archive. Existing installation was not changed."
+        exit 1
+    fi
+    if ! xz -dc "$WORK_DIR/chroot.tar.xz" | tar -tf - > /dev/null; then
+        echo "Invalid chroot tar payload. Existing installation was not changed."
+        exit 1
+    fi
 
-    # check free space, we require 512MB before installation for safety reasons
+    # Check free space before removing the existing chroot.  This is more
+    # conservative than the legacy flow: an update that cannot satisfy this
+    # threshold now fails safely instead of first deleting its fallback.
     FREE_SPACE=$(df /data | tail -1 | tr -s ' ' | cut -d' ' -f4)
     MIN_SPACE="524228"
     if [ "$FREE_SPACE" -lt "$MIN_SPACE" ]
@@ -63,6 +72,11 @@ do_setup()
         xzcat $WORK_DIR/img/install_fail_mem.img.xz > /dev/fb0
         exit 0
     fi
+
+    # replace previous mod version if present - keep other data in .klipper_mod
+    rm -f $MOD_INIT_FILE
+    rm -f $MOD_INIT_FILE_OLD
+    rm -rf $CHROOT_DIR
 
     # calculate checksums to be printed in the log
     if ls /mnt/Adventurer5M*; then

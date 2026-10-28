@@ -47,6 +47,26 @@ check_host_init_usb_script_policy() {
         "$init_script" >/dev/null
 }
 
+check_installer_preflight_order() {
+    local installer=$1
+    local archive_check_line tar_check_line free_space_line destructive_line
+
+    archive_check_line=$(grep -nF 'xz -t "$WORK_DIR/chroot.tar.xz"' "$installer" | \
+        head -n1 | cut -d: -f1)
+    tar_check_line=$(grep -nF 'tar -tf - > /dev/null' "$installer" | \
+        head -n1 | cut -d: -f1)
+    free_space_line=$(grep -nF 'FREE_SPACE=$(df /data' "$installer" | \
+        head -n1 | cut -d: -f1)
+    destructive_line=$(grep -nF 'rm -rf $CHROOT_DIR' "$installer" | \
+        head -n1 | cut -d: -f1)
+
+    [[ -n "$archive_check_line" && -n "$tar_check_line" && \
+        -n "$free_space_line" && -n "$destructive_line" ]] || \
+        return 1
+    (( archive_check_line < destructive_line && tar_check_line < destructive_line && \
+        free_space_line < destructive_line ))
+}
+
 check_variant_declaration "$repo_root/Makefile" || \
     fail "supported variants must be exactly 'lite'"
 pass "Makefile declares lite as the sole variant"
@@ -121,6 +141,13 @@ if check_host_init_usb_script_policy "$usb_script_fixture"; then
     fail "USB-script execution negative fixture unexpectedly passed"
 fi
 pass "USB-script execution negative fixture is rejected"
+
+installer="$repo_root/device_files/install/flashforge_init.sh"
+[[ -f "$installer" ]] || fail "missing installer: $installer"
+if ! check_installer_preflight_order "$installer"; then
+    fail "installer must validate its archive and free space before deleting a chroot"
+fi
+pass "installer preflight precedes destructive chroot replacement"
 
 build_wrapper="$repo_root/build_scripts/build.sh"
 [[ -f "$build_wrapper" ]] || fail "missing top-level build wrapper: $build_wrapper"
