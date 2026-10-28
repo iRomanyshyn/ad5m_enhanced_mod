@@ -23,9 +23,6 @@ mod_mcu_update_screen_error="$chroot_dir/usr/share/klipper_mod/fb/mcu_update_err
 # marker files on usb
 usb_marker_skip="klipper_mod_skip"
 usb_marker_remove="klipper_mod_remove"
-usb_marker_debug="klipper_mod_debug"
-# debug script is started from usb if debug marker is found
-usb_debug_script="mod_debug.sh"
 
 continue_flashforge_boot() {
     # continue with booth of the flashforge system
@@ -99,21 +96,6 @@ check_usb_marker() {
             fi
         done
     done
-
-    # check for debug marker. copy init logs and start debug script if detected
-    if [ "$usb_mod_marker" = "$usb_marker_debug" ]; then
-        echo "Found debug marker $usb_mod_marker on $usb_drive.";
-        mount -t vfat -o codepage=437,iocharset=utf8 /dev/$usb_drive /mnt || true
-        sync
-        echo "Copy init log files."
-        cp -f /root/mod_init* /mnt/ || true
-        sync
-        if [ -f /mnt/$usb_debug_script ]; then
-            echo "Execute debug script."
-            /bin/sh /mnt/$usb_debug_script || true
-        fi
-        umount /dev/$usb_drive || true;
-    fi
 
     # bail, if we found a flashforge update
     if [ -n "$usb_update_marker" ]; then

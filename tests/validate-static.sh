@@ -39,6 +39,14 @@ check_variant_declaration() {
     [[ "$variants" == "lite" ]]
 }
 
+check_host_init_usb_script_policy() {
+    local init_script=$1
+
+    ! grep -nE \
+        '(klipper_mod_debug|mod_debug\.sh|/bin/sh[[:space:]]+/mnt/)' \
+        "$init_script" >/dev/null
+}
+
 check_variant_declaration "$repo_root/Makefile" || \
     fail "supported variants must be exactly 'lite'"
 pass "Makefile declares lite as the sole variant"
@@ -99,6 +107,20 @@ for path in "${production_paths[@]}"; do
     [[ -z "$matches" ]] || fail "forbidden legacy reference in active source:\n$matches"
 done
 pass "active source has no legacy-screen or legacy-Buildroot reference"
+
+host_init="$repo_root/build_overlays/common/etc/init/S00klipper_mod"
+[[ -f "$host_init" ]] || fail "missing host init script: $host_init"
+if ! check_host_init_usb_script_policy "$host_init"; then
+    fail "host init must not execute a USB-provided script"
+fi
+pass "host init does not execute USB-provided scripts"
+
+usb_script_fixture="$tmp_dir/S00klipper_mod-usb-script"
+printf '%s\n' '/bin/sh /mnt/mod_debug.sh' > "$usb_script_fixture"
+if check_host_init_usb_script_policy "$usb_script_fixture"; then
+    fail "USB-script execution negative fixture unexpectedly passed"
+fi
+pass "USB-script execution negative fixture is rejected"
 
 build_wrapper="$repo_root/build_scripts/build.sh"
 [[ -f "$build_wrapper" ]] || fail "missing top-level build wrapper: $build_wrapper"
