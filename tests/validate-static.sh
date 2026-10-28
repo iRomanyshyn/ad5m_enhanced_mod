@@ -43,7 +43,7 @@ check_host_init_usb_script_policy() {
     local init_script=$1
 
     ! grep -nE \
-        '(klipper_mod_debug|mod_debug\.sh|/bin/sh[[:space:]]+/mnt/)' \
+        '(klipper_mod_debug|mod_debug\.sh|(^|[;[:space:]])(/bin/)?(sh|bash)[[:space:]]+/(mnt|media)/|(^|[;[:space:]])(\.|source)[[:space:]]+/(mnt|media)/)' \
         "$init_script" >/dev/null
 }
 
