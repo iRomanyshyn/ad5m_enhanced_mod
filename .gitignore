@@ -1,3 +1,7 @@
 build_output/*
 device_files/images/fb
 *.md.backup
+# Per-printer build credentials are deliberately local and must never enter a
+# release tree.  The generator writes only a password hash, but that hash is
+# still authentication material and is not a reusable project default.
+build_scripts/buildroot/configs/local/

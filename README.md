@@ -25,7 +25,8 @@ support for the AD5M hardware. The stability is already promising, but it still 
 - [Moonraker-timelapse](https://github.com/mainsail-crew/moonraker-timelapse) support
 - Network access: Ethernet LAN and WiFi via [iwd](https://iwd.wiki.kernel.org/)
 - Customized Linux environment based on [Buildroot](https://buildroot.org/)
-- SSH root access. Login: `root`, Password: `klipper`
+- SSH root access with a per-printer password supplied locally at build time;
+  no shared release credential
 - [Audio](https://pypi.org/project/ff-adm5-audio/) via buzzer (can play simple Midis)
 - [LCD backlight](https://pypi.org/project/ff-ad5m-backlight/) control 
 - Automatic USB flash drive mounting

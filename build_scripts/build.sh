@@ -10,6 +10,45 @@ MULTICORE=-j$(nproc)
 ###### Buildroot Common Build Helper Functions ######
 #####################################################
 
+# A release image must never inherit a shared root password.  Keep only a
+# per-printer SHA-256-crypt hash in a local ignored file.  Buildroot requires
+# dollar signs in pre-hashed passwords to be doubled in .config so Make does
+# not interpret them.
+load_root_password_hash()
+{
+	local password_file password_hash password_mode
+	local -a password_lines
+
+	password_file=${AD5M_ROOT_PASSWORD_HASH_FILE:-"$BUILDROOT_CONFIGS/local/root-password.sha256"}
+	if [[ ! -r "$password_file" || ! -f "$password_file" ]]; then
+		log_error "Per-printer root password hash not found: $password_file"
+		log_error "Run build_scripts/create-root-password-hash.sh, or set AD5M_ROOT_PASSWORD_HASH_FILE to a protected local hash file."
+		exit 1
+	fi
+
+	password_mode=$(stat -c '%a' "$password_file") || {
+		log_error "Cannot inspect root password hash permissions: $password_file"
+		exit 1
+	}
+	if (( (8#$password_mode & 077) != 0 )); then
+		log_error "Root password hash must not be readable by group or others: $password_file (mode $password_mode)"
+		exit 1
+	fi
+
+	mapfile -t password_lines < "$password_file"
+	if (( ${#password_lines[@]} != 1 )); then
+		log_error "Root password hash file must contain exactly one SHA-256-crypt hash: $password_file"
+		exit 1
+	fi
+	password_hash=${password_lines[0]}
+	if [[ ! "$password_hash" =~ ^\$5\$(rounds=[1-9][0-9]*\$)?[./0-9A-Za-z]{1,16}\$[./0-9A-Za-z]{43}$ ]]; then
+		log_error "Root password hash is not a valid SHA-256-crypt value: $password_file"
+		exit 1
+	fi
+
+	ROOT_PASSWORD_CONFIG_VALUE=${password_hash//\$/\$\$}
+}
+
 # Verify that a build uses the reviewed Buildroot tree recorded in this
 # repository. Do not silently reuse output configured by another Buildroot
 # source: it makes a package impossible to reproduce and can mix host tools.
@@ -235,10 +274,16 @@ defconfig_variant() {
 	sed -i '/^BR2_ROOTFS_OVERLAY=/d' .config
 	printf 'BR2_ROOTFS_OVERLAY="%s %s"\n' \
 		"$overlay_common" "$overlay_variant" >> .config
+	# This value comes from load_root_password_hash(), before any Buildroot
+	# output is initialized.  Do not write a clear-text password to .config.
+	sed -i '/^BR2_TARGET_GENERIC_ROOT_PASSWD=/d' .config
+	printf 'BR2_TARGET_GENERIC_ROOT_PASSWD="%s"\n' \
+		"$ROOT_PASSWORD_CONFIG_VALUE" >> .config
     popd > /dev/null
 }
 
 prepare_variant() {
+	load_root_password_hash
 	variant_env $1
 	buildroot_prepare "$br_builddir" "defconfig_variant $variant"
 }

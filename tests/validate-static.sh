@@ -86,6 +86,16 @@ check_ntp_default_policy() {
         ! grep -Eqi '(pool\.ntp\.org|[0-9]+\.pool\.ntp\.org)' "$init_script" "$config"
 }
 
+check_root_password_policy() {
+    local config=$1 wrapper=$2 generator=$3
+
+    ! grep -Eq '^BR2_TARGET_GENERIC_ROOT_PASSWD=' "$config" &&
+        grep -Fqx 'BR2_TARGET_ENABLE_ROOT_LOGIN=y' "$config" &&
+        grep -Fq 'AD5M_ROOT_PASSWORD_HASH_FILE' "$wrapper" &&
+        grep -Fq 'ROOT_PASSWORD_CONFIG_VALUE=${password_hash//\$/\$\$}' "$wrapper" &&
+        grep -Fq 'openssl passwd -5 -stdin' "$generator"
+}
+
 check_variant_declaration "$repo_root/Makefile" || \
     fail "supported variants must be exactly 'lite'"
 pass "Makefile declares lite as the sole variant"
@@ -184,7 +194,16 @@ if ! check_ntp_default_policy "$ntp_init" "$ntp_config"; then
 fi
 pass "NTP is disabled by default and has no public default endpoint"
 
+root_config="$repo_root/build_scripts/buildroot/configs/base"
+root_generator="$repo_root/build_scripts/create-root-password-hash.sh"
 build_wrapper="$repo_root/build_scripts/build.sh"
+[[ -f "$root_config" && -f "$root_generator" ]] || \
+    fail "missing per-printer root-password configuration or generator"
+if ! check_root_password_policy "$root_config" "$build_wrapper" "$root_generator"; then
+    fail "root password policy must require a local SHA-256-crypt input and forbid a shared config password"
+fi
+pass "root password is a per-printer ignored build input, not a shared config value"
+
 [[ -f "$build_wrapper" ]] || fail "missing top-level build wrapper: $build_wrapper"
 bash -n "$build_wrapper"
 pass "top-level build wrapper has valid Bash syntax"
