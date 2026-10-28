@@ -1,0 +1,115 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: AD5M Enhanced Mod <noreply@example.invalid>
+Date: Tue, 28 Oct 2026 00:00:00 +0000
+Subject: [PATCH] Remove unsafe loadcell raw diagnostic
+
+The production loadcell diagnostic accepted arbitrary G-code text and copied
+its caller-provided length into a fixed 32-byte MCU queue buffer.  Remove the
+raw passthrough from the host and MCU command surface.  Keep an explicit
+length check at the queue boundary as defense in depth for all remaining
+callers.
+
+The regular AD5M macros use the typed tare command and do not require this raw
+diagnostic path.
+
+---
+ klippy/extras/flashforge_loadcell.py | 14 --------------
+ src/stm32/flashforge_load_cell.c     | 16 ++++++++++++----
+ 2 files changed, 12 insertions(+), 18 deletions(-)
+
+diff --git a/klippy/extras/flashforge_loadcell.py b/klippy/extras/flashforge_loadcell.py
+index 4e5d0fe..d4dc821 100644
+--- a/klippy/extras/flashforge_loadcell.py
++++ b/klippy/extras/flashforge_loadcell.py
+@@ -9,22 +9,19 @@
+ MCU_CMD_FLASHFORGE_H2 = "flashforge_loadcell_h2 weight=%u"
+ MCU_CMD_FLASHFORGE_H3 = "flashforge_loadcell_h3 weight=%u"
+ MCU_CMD_FLASHFORGE_H7 = "flashforge_loadcell_h7"
+-MCU_CMD_FLASHFORGE_TEST = "flashforge_loadcell_test_cmd cmd=%*s"
+ 
+ 
+ class Commands(Enum):
+     H1 = 'H1'
+     H2 = 'H2'
+     H3 = 'H3'
+     H7 = 'H7'
+-    TEST = 'TEST'
+ 
+ _MCU_CMD_MAP = {
+     MCU_CMD_FLASHFORGE_H1: Commands.H1,
+     MCU_CMD_FLASHFORGE_H2: Commands.H2,
+     MCU_CMD_FLASHFORGE_H3: Commands.H3,
+     MCU_CMD_FLASHFORGE_H7: Commands.H7,
+-    MCU_CMD_FLASHFORGE_TEST: Commands.TEST,
+ }
+ 
+ class MCUResponse:
+@@ -79,11 +76,6 @@ class FlashforgeLoadCell:
+             self.cmd_GET_LOAD_CELL_WEIGHT,
+             desc="Queries and displays the current weight"
+         )
+-        self.gcode.register_command(
+-            "FLASHFORGE_LOAD_CELL_TEST",
+-            self.cmd_LOAD_CELL_TEST,
+-            desc="Sends an arbitrary command to the loadcell"
+-        )
+         self.printer.register_event_handler("klippy:connect", self._handle_connect)
+ 
+     def _handle_connect(self):
+@@ -92,7 +85,6 @@ class FlashforgeLoadCell:
+             MCU_CMD_FLASHFORGE_H2,
+             MCU_CMD_FLASHFORGE_H3,
+             MCU_CMD_FLASHFORGE_H7,
+-            MCU_CMD_FLASHFORGE_TEST
+         ):
+             cmd = self.mcu.try_lookup_command(cmd_name)
+             if not cmd:
+@@ -185,15 +176,6 @@ class FlashforgeLoadCell:
+         self._send_and_wait(MCU_CMD_FLASHFORGE_H3, params_list=[weight])
+         gcmd.respond_info(f"{self.name}: Save calibration command sent.")
+ 
+-    def cmd_LOAD_CELL_TEST(self, gcmd):
+-        cmd_str = gcmd.get('CMD', None)
+-        if cmd_str is None:
+-            raise gcmd.error(f"{self.name}: No CMD parameter provided.")
+-        
+-        cmd_bytes = cmd_str.encode('utf-8')
+-        response = self._send_and_wait(MCU_CMD_FLASHFORGE_TEST, params_list=[cmd_bytes])
+-        gcmd.respond_info(f"{self.name}: Response: {response.raw_response}")
+-
+     def get_status(self, eventtime):
+         return {'force_g': self.last_weight_grams}
+ 
+diff --git a/src/stm32/flashforge_load_cell.c b/src/stm32/flashforge_load_cell.c
+index 94f4267..eb39db5 100644
+--- a/src/stm32/flashforge_load_cell.c
++++ b/src/stm32/flashforge_load_cell.c
+@@ -247,6 +247,12 @@ static void enqueue_flashforge_command(const char *cmd_name,
+   struct queued_cmd *slot = &cmd_queue[cmdq_head];
+   strncpy(slot->cmd_name, cmd_name, sizeof(slot->cmd_name) - 1);
+   slot->cmd_name[sizeof(slot->cmd_name) - 1] = '\0';
++  if (cmd_len > sizeof(slot->cmd_data)) {
++    flashforge_loadcell_response_send("error", slot->cmd_name, 0,
++                                      "MCU command too long");
++    irq_enable();
++    return;
++  }
+   memcpy(slot->cmd_data, cmd_data, cmd_len);
+   slot->cmd_len = cmd_len;
+   cmdq_head = next;
+@@ -340,13 +346,6 @@ void command_flashforge_loadcell_h7(uint32_t *args) {
+ }
+ DECL_COMMAND(command_flashforge_loadcell_h7, "flashforge_loadcell_h7");
+ 
+-void command_flashforge_loadcell_test_cmd(uint32_t *args) {
+-  uint32_t length = args[0];
+-  char *cmd_str = (char *)command_decode_ptr(args[1]);
+-  send_flashforge_command("TEST", cmd_str, length);
+-}
+-DECL_COMMAND(command_flashforge_loadcell_test_cmd,
+-             "flashforge_loadcell_test_cmd cmd=%*s");
+ 
+ void flashforge_loadcell_init(void) {
+   memset(&bridge, 0, sizeof(bridge));
+-- 
+2.47.2

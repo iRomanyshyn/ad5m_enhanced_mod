@@ -67,6 +67,15 @@ check_installer_preflight_order() {
         free_space_line < destructive_line ))
 }
 
+check_loadcell_diagnostic_patch() {
+    local patch=$1
+
+    grep -Fq 'Subject: [PATCH] Remove unsafe loadcell raw diagnostic' "$patch" &&
+        grep -Fq '+  if (cmd_len > sizeof(slot->cmd_data)) {' "$patch" &&
+        grep -Fq -- '-            "FLASHFORGE_LOAD_CELL_TEST",' "$patch" &&
+        grep -Fq -- '-DECL_COMMAND(command_flashforge_loadcell_test_cmd,' "$patch"
+}
+
 check_variant_declaration "$repo_root/Makefile" || \
     fail "supported variants must be exactly 'lite'"
 pass "Makefile declares lite as the sole variant"
@@ -148,6 +157,13 @@ if ! check_installer_preflight_order "$installer"; then
     fail "installer must validate its archive and free space before deleting a chroot"
 fi
 pass "installer preflight precedes destructive chroot replacement"
+
+loadcell_patch="$repo_root/build_scripts/buildroot/package/klipper/0004-Remove-unsafe-loadcell-raw-diagnostic.patch"
+[[ -f "$loadcell_patch" ]] || fail "missing loadcell diagnostic safety patch"
+if ! check_loadcell_diagnostic_patch "$loadcell_patch"; then
+    fail "loadcell safety patch must remove raw G-code forwarding and bound MCU queue copies"
+fi
+pass "loadcell diagnostic raw command is removed and queue copy is bounded"
 
 build_wrapper="$repo_root/build_scripts/build.sh"
 [[ -f "$build_wrapper" ]] || fail "missing top-level build wrapper: $build_wrapper"
