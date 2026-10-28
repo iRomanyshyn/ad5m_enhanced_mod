@@ -51,17 +51,6 @@ mkdir -p /root/printer_data/gcodes
 setup_static_data /root/printer_data/gcodes
 
 ##############################
-# user provided overlay
-##############################
-
-# install usb flash drive is mounted to /media if available
-if [ -d /media/klipper_mod/ ]; then
-    # copy everything into the chroot
-    rsync -rltvK /media/klipper_mod/* /
-fi
-umount /media
-
-##############################
 # install done
 ##############################
 

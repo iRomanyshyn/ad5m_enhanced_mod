@@ -123,6 +123,13 @@ check_no_automatic_mcu_flash() {
         ! grep -Fq '/etc/init.d/S54mcu_update start' "$install_steps"
 }
 
+check_no_usb_root_overlay() {
+    local host_init=$1 install_steps=$2
+
+    ! grep -Fq 'mount -o bind /mnt $chroot_dir/media' "$host_init" &&
+        ! grep -Eq '(/media/klipper_mod|rsync[[:space:]].*[[:space:]]/)' "$install_steps"
+}
+
 check_variant_declaration "$repo_root/Makefile" || \
     fail "supported variants must be exactly 'lite'"
 pass "Makefile declares lite as the sole variant"
@@ -191,6 +198,13 @@ if ! check_host_init_usb_script_policy "$host_init"; then
 fi
 pass "host init does not execute USB-provided scripts"
 
+install_steps="$repo_root/build_overlays/common/etc/init/install_steps.sh"
+[[ -f "$install_steps" ]] || fail "missing chroot install-steps script"
+if ! check_no_usb_root_overlay "$host_init" "$install_steps"; then
+    fail "installer must not bind a USB medium into the chroot or copy it into root"
+fi
+pass "installer has no arbitrary USB root-overlay path"
+
 usb_script_fixture="$tmp_dir/S00klipper_mod-usb-script"
 printf '%s\n' '/bin/sh /mnt/mod_debug.sh' > "$usb_script_fixture"
 if check_host_init_usb_script_policy "$usb_script_fixture"; then
@@ -246,7 +260,6 @@ fi
 pass "base image excludes the FFmpeg/timelapse stack"
 
 mcu_init="$repo_root/build_overlays/common/etc/init.d/S54mcu_update"
-install_steps="$repo_root/build_overlays/common/etc/init/install_steps.sh"
 [[ -f "$mcu_init" && -f "$install_steps" ]] || \
     fail "missing MCU-init or install-steps policy input"
 if ! check_no_automatic_mcu_flash "$mcu_init" "$install_steps"; then
