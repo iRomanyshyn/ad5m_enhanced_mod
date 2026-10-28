@@ -32,6 +32,7 @@ trap 'rm -rf "$tmp_dir"' EXIT
 mapfile -d '' -t python_files < <(
     find "$repo_root/build_scripts" "$repo_root/build_overlays" \
         "$repo_root/device_files" "$repo_root/tests" \
+        -path "$repo_root/build_scripts/components/moonraker_extensions" -prune -o \
         -type f -name '*.py' -print0
 )
 if ((${#python_files[@]})); then

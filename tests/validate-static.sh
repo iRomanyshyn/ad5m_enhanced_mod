@@ -105,6 +105,16 @@ check_moonraker_first_claim_policy() {
         grep -A1 -F 'cors_domains:' "$config" | grep -Fqx '  *'
 }
 
+check_no_base_timelapse() {
+    local buildroot_config=$1 moonraker_config=$2 printer_config=$3 post_build=$4
+
+    ! grep -Eqi '(^|_)FFMPEG|(^|_)X264' "$buildroot_config" &&
+        ! grep -Eq '^\[timelapse\]$' "$moonraker_config" &&
+        ! grep -Fq '[include timelapse.cfg]' "$printer_config" &&
+        ! grep -Fq 'moonraker_extensions/' "$post_build" &&
+        grep -Fq 'rm -f "$TARGET_ROOT/root/printer_data/config/timelapse.cfg"' "$post_build"
+}
+
 check_variant_declaration "$repo_root/Makefile" || \
     fail "supported variants must be exactly 'lite'"
 pass "Makefile declares lite as the sole variant"
@@ -218,6 +228,14 @@ moonraker_config="$repo_root/printer_configs/moonraker.conf"
 if ! check_moonraker_first_claim_policy "$moonraker_config"; then
     fail "Moonraker must use the explicit first-claim profile with force_logins and API keys"
 fi
+pass "Moonraker uses the explicit first-claim profile with force_logins and API keys"
+
+printer_config="$repo_root/printer_configs/printer.cfg"
+post_build="$repo_root/build_scripts/buildroot/post_build.sh"
+if ! check_no_base_timelapse "$root_config" "$moonraker_config" "$printer_config" "$post_build"; then
+    fail "base image must exclude the FFmpeg/timelapse stack and its Moonraker component"
+fi
+pass "base image excludes the FFmpeg/timelapse stack"
 pass "Moonraker seed enables first-claim setup then credentialed access"
 
 [[ -f "$build_wrapper" ]] || fail "missing top-level build wrapper: $build_wrapper"

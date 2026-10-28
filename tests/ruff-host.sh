@@ -36,7 +36,6 @@ runtime_sources=(
     "$repo_root/build_scripts/components/klipper_extensions/gcode_shell_command.py"
     "$repo_root/build_scripts/components/klipper_extensions/md5_checker.py"
     "$repo_root/build_scripts/components/klipper_extensions/power_loss_recovery.py"
-    "$repo_root/build_scripts/components/moonraker_extensions/timelapse.py"
 )
 
 RUFF_CACHE_DIR="$tmp_dir/cache" ruff check --config "$repo_root/ruff.toml" "${runtime_sources[@]}"

@@ -17,9 +17,12 @@ Existing AD5M profiles can be used a baseline. But make sure to configure at lea
 
 Variables may differ depending on the slicer used.
 
-### Timelapse Support
+### Timelapse
 
-To support automatic timelapse creation via Moonraker-timelapse add `TIMELAPSE_TAKE_FRAME` to the before layer change G-code in the printer profile. Refer to the [Moonraker-timelapse](https://github.com/mainsail-crew/moonraker-timelapse/blob/main/docs/configuration.md) documentation for more details.
+The base image deliberately does not support automatic timelapse capture or
+rendering. Do not add `TIMELAPSE_TAKE_FRAME` to slicer G-code: there is no
+active component to consume it. Live camera streaming remains available and
+does not depend on FFmpeg.
 
 ## Automatic Bed Leveling and Nozzle Priming
 

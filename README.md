@@ -22,7 +22,6 @@ support for the AD5M hardware. The stability is already promising, but it still 
 - [Mainsail](https://docs.mainsail.xyz/) on port 4000
 - [Fluidd](https://docs.fluidd.xyz/) on port 4001
 - Camera streaming via [ustreamer](https://github.com/pikvm/ustreamer) on port 8080
-- [Moonraker-timelapse](https://github.com/mainsail-crew/moonraker-timelapse) support
 - Network access: Ethernet LAN and WiFi via [iwd](https://iwd.wiki.kernel.org/)
 - Customized Linux environment based on [Buildroot](https://buildroot.org/)
 - SSH root access with a per-printer password supplied locally at build time;

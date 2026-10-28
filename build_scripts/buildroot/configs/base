@@ -86,29 +86,6 @@ BR2_PACKAGE_NFS_UTILS=y
 BR2_PACKAGE_NFS_UTILS_NFSV4=y
 # BR2_PACKAGE_NFS_UTILS_RPC_NFSD is not set
 
-# FFmpeg
-BR2_PACKAGE_FFMPEG_ARCH_SUPPORTS=y
-BR2_PACKAGE_FFMPEG=y
-BR2_PACKAGE_FFMPEG_GPL=y
-# Avoid an unredistributable FFmpeg configuration.  The selected timelapse
-# stack uses libx264, but no configured FFmpeg feature needs the separate
-# nonfree permission.
-# BR2_PACKAGE_FFMPEG_NONFREE is not set
-BR2_PACKAGE_FFMPEG_FFMPEG=y
-BR2_PACKAGE_FFMPEG_ENCODERS="libx264 mjpeg"
-BR2_PACKAGE_FFMPEG_DECODERS="mjpeg"
-BR2_PACKAGE_FFMPEG_MUXERS="mp4"
-BR2_PACKAGE_FFMPEG_DEMUXERS="mjpeg image2"
-BR2_PACKAGE_FFMPEG_PARSERS="mjpeg"
-BR2_PACKAGE_FFMPEG_BSFS=""
-BR2_PACKAGE_FFMPEG_PROTOCOLS="file"
-BR2_PACKAGE_FFMPEG_FILTERS="scale transpose hflip vflip rotate"
-BR2_PACKAGE_FFMPEG_SWSCALE=y
-# BR2_PACKAGE_FFMPEG_INDEVS is not set
-# BR2_PACKAGE_FFMPEG_OUTDEVS is not set
-BR2_PACKAGE_FFMPEG_EXTRACONF=""
-BR2_PACKAGE_X264=y
-
 BR2_PACKAGE_KLIPPER=y
 # The build wrapper writes BR2_PACKAGE_KLIPPER_CONFIGS into each generated
 # variant configuration from the repository root. Relative paths here are

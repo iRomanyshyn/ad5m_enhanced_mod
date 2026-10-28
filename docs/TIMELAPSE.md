@@ -1,13 +1,13 @@
-# Moonraker timelapse plugin
+# Timelapse (not included in the base image)
 
-By default the moonraker timelapse plugin is disabled. You can enable it by adding `enabled: True` in the the `/root/printer_data/config/moonraker.conf` file under `[timelapse]`. 
+The AD5M base image deliberately excludes automatic timelapse capture,
+rendering, FFmpeg, x264, and the Moonraker timelapse component. Rendering
+during a print competes with motion control and is not a useful default on a
+128 MiB printer.
 
-Please leave the `extraoutputparams`, `constant_rate_factor` and `pixelformat` as is unless you know what you are doing. These have been set to speed up the timelapse rendering as much as possible.
-
-## Output
-
-Files are stored in `/root/printer_data/timelapse` and the images in `/root/printer_data/timelapse/images`. By default the images will be deleted after rendering.
-
-## Knowin issues
-
-* Larger prints with many screenshots take a considerable amount of time to render. Think 10+ minutes.
+The former component and macro sources are retained only as frozen provenance
+references; they are not copied into the target rootfs and no configuration
+activates them. A
+future optional media add-on must have an explicit resource policy, manifest,
+integrity verification, rollback path, and hardware validation before this
+document becomes an installation guide again.

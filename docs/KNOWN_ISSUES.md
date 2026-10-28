@@ -4,8 +4,8 @@ This section documents some known issues that exist, but are unlikely to be fixe
 
 * Printer resource limitations and consequences of system overload:  
 The 5M (PRO) has very limited system resources, especially limited ram and slow flash. In general the mod is stable for everyday use
-with all features for printing and control of the printer functions, including Webcam. However, if heavy background task are attemped while printing,
-i.e. rendering a timelapse or copying huge amounts of data to the system it will very likely make the print fail (so don't do it).
+with all features for printing and control of the printer functions, including Webcam. However, heavy background tasks attempted while printing,
+such as copying huge amounts of data to the system, can make the print fail. The base image therefore excludes timelapse rendering.
 
 * Sporadic MCU timeouts during SHAPER_CALIBRATE:  
 Timeout errors during input shaper calibration can happen in some cases, since it's a quite resource intenstive task. If it happens, just restart Klipper and restart

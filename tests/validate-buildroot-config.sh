@@ -99,12 +99,8 @@ grep -Fqx 'BR2_PACKAGE_MOONRAKER=y' "$config" || \
     fail "generated lite config does not enable Moonraker"
 grep -Fqx 'BR2_PACKAGE_USTREAMER=y' "$config" || \
     fail "generated lite config does not enable ustreamer"
-grep -Fqx '# BR2_PACKAGE_FFMPEG_NONFREE is not set' "$config" || \
-    fail "generated lite config enables unredistributable FFmpeg features"
-grep -Fqx 'BR2_PACKAGE_FFMPEG_GPL=y' "$config" || \
-    fail "generated lite config no longer selects the reviewed GPL FFmpeg profile"
-grep -Fqx 'BR2_PACKAGE_X264=y' "$config" || \
-    fail "generated lite config no longer provides the timelapse H.264 encoder"
+! grep -Eq '^BR2_PACKAGE_FFMPEG=y$|^BR2_PACKAGE_X264=y$' "$config" || \
+    fail "generated lite config must not include the retired FFmpeg/x264 timelapse stack"
 grep -Fqx 'BR2_TARGET_ENABLE_ROOT_LOGIN=y' "$config" || \
     fail "generated lite config does not explicitly retain password login"
 grep -Fqx 'BR2_TARGET_GENERIC_ROOT_PASSWD="$$5$$ad5mtestsalt$$agH/idcAiVhRGQO/H4gI3XdiAij8M5Z2jmOmwjNBLA8"' "$config" || \

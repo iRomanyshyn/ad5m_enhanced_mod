@@ -49,8 +49,9 @@ EOF
 log_info "Installing custom Klipper Python extensions into /opt/klipper/klippy/extras/."
 cp "$GIT_ROOT/build_scripts/components/klipper_extensions/"*.py "$TARGET_ROOT/opt/klipper/klippy/extras/" || true
 
-log_info "Installing custom Moonraker Python extensions into /opt/moonraker/moonraker/components/."
-cp "$GIT_ROOT/build_scripts/components/moonraker_extensions/"*.py "$TARGET_ROOT/opt/moonraker/moonraker/components/" || true
+# The base image intentionally ships no Moonraker extension.  In particular,
+# do not copy the parked timelapse component: it would add an untested media
+# workflow even when its configuration is absent.
 
 log_info "Setting Moonraker API communication port to 7125 within Mainsail's configuration (/opt/mainsail/config.json). This ensures Mainsail can properly connect to Moonraker."
 sed -i 's\"port": null\"port": 7125\g' "$TARGET_ROOT/opt/mainsail/config.json"
@@ -61,6 +62,8 @@ mkdir -p "$TARGET_ROOT/root/printer_data/config"
 
 log_info "  Copying all printer-specific configuration files from $GIT_ROOT/printer_configs/ to their final destination: /root/printer_data/config/."
 cp -r "$GIT_ROOT/printer_configs/"* "$TARGET_ROOT/root/printer_data/config"
+log_info "  Removing the retired timelapse macro from the base target configuration."
+rm -f "$TARGET_ROOT/root/printer_data/config/timelapse.cfg"
 log_info "Printer configurations successfully copied and staged for deployment."
 
 log_info "Verifying and correcting D-Bus user and group entries in /etc/group, /etc/passwd, and /etc/shadow. This ensures D-Bus, a critical system message bus, operates securely."
