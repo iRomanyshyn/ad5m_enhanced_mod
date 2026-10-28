@@ -62,18 +62,6 @@ fi
 umount /media
 
 ##############################
-# update klipper firmware
-##############################
-if /etc/init.d/S54mcu_update start; then
-  sleep 3
-else
-  # display mcu update failure screen for longer time
-  # update must be restarted in this case
-  sleep 300
-  exit 1
-fi
-
-##############################
 # install done
 ##############################
 

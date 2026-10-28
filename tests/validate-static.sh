@@ -115,6 +115,14 @@ check_no_base_timelapse() {
         grep -Fq 'rm -f "$TARGET_ROOT/root/printer_data/config/timelapse.cfg"' "$post_build"
 }
 
+check_no_automatic_mcu_flash() {
+    local init_service=$1 install_steps=$2
+
+    grep -Fq 'Automatic MCU flashing is intentionally disabled' "$init_service" &&
+        ! grep -Eq 'mcu_update\.sh[[:space:]]+(update|update_stock)|UPDATE_SCRIPT[[:space:]]+update' "$init_service" &&
+        ! grep -Fq '/etc/init.d/S54mcu_update start' "$install_steps"
+}
+
 check_variant_declaration "$repo_root/Makefile" || \
     fail "supported variants must be exactly 'lite'"
 pass "Makefile declares lite as the sole variant"
@@ -236,6 +244,15 @@ if ! check_no_base_timelapse "$root_config" "$moonraker_config" "$printer_config
     fail "base image must exclude the FFmpeg/timelapse stack and its Moonraker component"
 fi
 pass "base image excludes the FFmpeg/timelapse stack"
+
+mcu_init="$repo_root/build_overlays/common/etc/init.d/S54mcu_update"
+install_steps="$repo_root/build_overlays/common/etc/init/install_steps.sh"
+[[ -f "$mcu_init" && -f "$install_steps" ]] || \
+    fail "missing MCU-init or install-steps policy input"
+if ! check_no_automatic_mcu_flash "$mcu_init" "$install_steps"; then
+    fail "base image must not flash MCUs during boot or as an install side effect"
+fi
+pass "base image has no automatic boot/install MCU flash path"
 pass "Moonraker seed enables first-claim setup then credentialed access"
 
 [[ -f "$build_wrapper" ]] || fail "missing top-level build wrapper: $build_wrapper"
