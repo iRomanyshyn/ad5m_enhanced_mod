@@ -96,6 +96,15 @@ check_root_password_policy() {
         grep -Fq 'openssl passwd -5 -stdin' "$generator"
 }
 
+check_moonraker_first_claim_policy() {
+    local config=$1
+
+    grep -Fqx 'enable_api_key: true' "$config" &&
+        grep -Fqx 'force_logins: true' "$config" &&
+        grep -A1 -F 'trusted_clients:' "$config" | grep -Fqx '  0.0.0.0/0' &&
+        grep -A1 -F 'cors_domains:' "$config" | grep -Fqx '  *'
+}
+
 check_variant_declaration "$repo_root/Makefile" || \
     fail "supported variants must be exactly 'lite'"
 pass "Makefile declares lite as the sole variant"
@@ -203,6 +212,13 @@ if ! check_root_password_policy "$root_config" "$build_wrapper" "$root_generator
     fail "root password policy must require a local SHA-256-crypt input and forbid a shared config password"
 fi
 pass "root password is a per-printer ignored build input, not a shared config value"
+
+moonraker_config="$repo_root/printer_configs/moonraker.conf"
+[[ -f "$moonraker_config" ]] || fail "missing Moonraker seed configuration"
+if ! check_moonraker_first_claim_policy "$moonraker_config"; then
+    fail "Moonraker must use the explicit first-claim profile with force_logins and API keys"
+fi
+pass "Moonraker seed enables first-claim setup then credentialed access"
 
 [[ -f "$build_wrapper" ]] || fail "missing top-level build wrapper: $build_wrapper"
 bash -n "$build_wrapper"
