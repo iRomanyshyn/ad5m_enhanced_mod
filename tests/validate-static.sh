@@ -76,6 +76,16 @@ check_loadcell_diagnostic_patch() {
         grep -Fq -- '-DECL_COMMAND(command_flashforge_loadcell_test_cmd,' "$patch"
 }
 
+check_ntp_default_policy() {
+    local init_script=$1 config=$2
+
+    grep -Fq 'NTP_CONFIG="/etc/default/ad5m-ntp"' "$init_script" &&
+        grep -Fq 'if [ "$NTP_ENABLED" != "1" ]; then' "$init_script" &&
+        grep -Fq 'NTP_ENABLED=0' "$config" &&
+        grep -Fq 'NTP_SERVER=' "$config" &&
+        ! grep -Eqi '(pool\.ntp\.org|[0-9]+\.pool\.ntp\.org)' "$init_script" "$config"
+}
+
 check_variant_declaration "$repo_root/Makefile" || \
     fail "supported variants must be exactly 'lite'"
 pass "Makefile declares lite as the sole variant"
@@ -164,6 +174,15 @@ if ! check_loadcell_diagnostic_patch "$loadcell_patch"; then
     fail "loadcell safety patch must remove raw G-code forwarding and bound MCU queue copies"
 fi
 pass "loadcell diagnostic raw command is removed and queue copy is bounded"
+
+ntp_init="$repo_root/build_overlays/common/etc/init.d/S45ntpd"
+ntp_config="$repo_root/build_overlays/common/etc/default/ad5m-ntp"
+[[ -f "$ntp_init" && -f "$ntp_config" ]] || \
+    fail "missing explicit NTP default-policy files"
+if ! check_ntp_default_policy "$ntp_init" "$ntp_config"; then
+    fail "NTP must be opt-in with no public default endpoint"
+fi
+pass "NTP is disabled by default and has no public default endpoint"
 
 build_wrapper="$repo_root/build_scripts/build.sh"
 [[ -f "$build_wrapper" ]] || fail "missing top-level build wrapper: $build_wrapper"

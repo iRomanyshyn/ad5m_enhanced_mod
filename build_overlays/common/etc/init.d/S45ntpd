@@ -1,13 +1,33 @@
 #!/bin/sh
 #
-# Starts busybox ntpd to sync time and keep fake-hwclock up to date.
+# Starts BusyBox ntpd only after explicit local configuration.  The printer is
+# intentionally usable without outbound time synchronization.
 #
-NTP_SERVER="pool.ntp.org"
+NTP_CONFIG="/etc/default/ad5m-ntp"
 PID_FILE=/run/ntpd.pid
 
+if [ -r "$NTP_CONFIG" ]; then
+    # This file is part of the root-owned system configuration.  It contains
+    # simple shell assignments maintained by the future owner-facing flow.
+    . "$NTP_CONFIG"
+fi
+
+: "${NTP_ENABLED:=0}"
+: "${NTP_SERVER:=}"
+
 start() {
+	if [ "$NTP_ENABLED" != "1" ]; then
+		printf "BusyBox ntpd disabled (no configured time source)\n"
+		return 0
+	fi
+
+	if [ -z "$NTP_SERVER" ]; then
+		printf "BusyBox ntpd not started (NTP_SERVER is empty)\n" >&2
+		return 1
+	fi
+
 	printf "Starting busybox ntpd: "
-	start-stop-daemon -S -b -m -p $PID_FILE --exec /usr/sbin/ntpd -- -n -S fake-hwclock -p $NTP_SERVER
+	start-stop-daemon -S -b -m -p "$PID_FILE" --exec /usr/sbin/ntpd -- -n -S fake-hwclock -p "$NTP_SERVER"
 	[ $? = 0 ] && echo "OK" || echo "FAIL"
 }
 stop() {

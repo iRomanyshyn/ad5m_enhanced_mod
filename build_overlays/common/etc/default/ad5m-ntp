@@ -1,0 +1,7 @@
+# Outbound time synchronization is disabled by default.  The printer remains
+# locally usable with fake-hwclock when no time source is configured.
+#
+# A future owner-facing configuration flow may set NTP_ENABLED=1 and select a
+# specific LAN or owner-approved NTP server.  Do not add a public default.
+NTP_ENABLED=0
+NTP_SERVER=
