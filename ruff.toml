@@ -1,0 +1,7 @@
+# Host-only lint policy for the active target-runtime Python modules.  Keep this
+# deliberately narrow until behavior-sensitive code has focused tests.
+required-version = "==0.17.0"
+target-version = "py312"
+
+[lint]
+select = ["F401"]

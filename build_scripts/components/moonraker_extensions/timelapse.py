@@ -22,7 +22,7 @@ from typing import (
 )
 if TYPE_CHECKING:
     from confighelper import ConfigHelper
-    from .webcam import WebcamManager, WebCam
+    from .webcam import WebcamManager
     from websockets import WebRequest
     from . import shell_command
     from . import klippy_apis

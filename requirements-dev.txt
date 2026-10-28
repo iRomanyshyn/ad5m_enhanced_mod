@@ -1,0 +1,3 @@
+# Development-only tooling.  Nothing in this file is packaged into the target
+# image or downloaded by the default validation targets.
+ruff==0.17.0
