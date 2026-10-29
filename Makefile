@@ -68,7 +68,7 @@ checksums: packages
 	$(BUILD) checksums
 
 # Helper targets
-.PHONY: help lint lint-ruff macro-golden validate validate-config
+.PHONY: help lint lint-ruff macro-golden moonraker-auth-contract validate validate-config
 
 lint:
 	./tests/lint-host.sh "$(CURDIR)"
@@ -78,6 +78,9 @@ lint-ruff:
 
 macro-golden:
 	KLIPPER_SOURCE_DIR="$(KLIPPER_SOURCE_DIR)" ./tests/validate-macro-golden.py "$(CURDIR)"
+
+moonraker-auth-contract:
+	PYTHONDONTWRITEBYTECODE=1 MOONRAKER_SOURCE_DIR="$(MOONRAKER_SOURCE_DIR)" ./tests/validate-moonraker-auth-contract.py "$(CURDIR)"
 
 validate: lint
 	./tests/validate-static.sh "$(CURDIR)"
@@ -135,6 +138,7 @@ help:
 	@echo "  lint                   - Run portable host-side source lint checks"
 	@echo "  lint-ruff              - Run opt-in pinned Ruff checks for runtime Python"
 	@echo "  macro-golden           - Render safe macros using an official Klipper checkout"
+	@echo "  moonraker-auth-contract - Exercise pinned Moonraker first-claim authorization branches with boundary fakes"
 	@echo "  validate               - Run host-side static integration checks"
 	@echo "  validate-config        - Configure lite in disposable Buildroot output"
 	@echo ""
