@@ -36,4 +36,6 @@ The `START_PRINT` macro will automatically print a purge line before print. This
 
 To connect to the printer, use the following physical printer settings:
 * Host type: `moonraker`, `klipper` or `klipper (via moonraker)`
-* Hostname, IP or URL: `x.y.z.a:7125` (replace with your ip)
+* Hostname, IP or URL: `ad5m-<suffix>.local:7125`, using the persistent name
+  recorded during first installation. An existing printer keeps its prior
+  hostname; a DHCP address is only a fallback, not the recommended slicer URL.

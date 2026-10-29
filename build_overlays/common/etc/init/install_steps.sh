@@ -15,6 +15,22 @@ chmod 0600 /mnt/swap
 static_dir="/mnt/data/.klipper_mod/static"
 mkdir -p $static_dir
 
+# On a genuinely fresh installation, replace only the generic build-time
+# hostname with a persistent random local name before it is moved into static
+# state. Existing installations always retain their selected hostname.
+if [ ! -e "$static_dir/etc/hostname" ] && \
+   [ "$(tr -d '\r\n' < /etc/hostname)" = "AD5M" ]; then
+  if device_name=$(/usr/libexec/ad5m-device-name generate); then
+    printf '%s\n' "$device_name" > /etc/hostname
+    echo "Generated persistent local hostname: $device_name"
+  else
+    # Do not replace a name with predictable data or abort after the legacy
+    # installer has already changed its chroot. The generic name remains a
+    # visible recovery state that the owner can rename later.
+    echo "Warning: could not generate a unique hostname; retaining AD5M."
+  fi
+fi
+
 setup_static_data()
 {
   # initial static data is initialized from the chroot

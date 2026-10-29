@@ -1,0 +1,36 @@
+#!/bin/sh
+# Generate and validate persistent AD5M hostnames.  This helper is called only
+# during first installation; it is not a boot-time naming service.
+set -eu
+
+is_valid_name() {
+    name=$1
+    case "$name" in
+        '' | localhost | -* | *- | *[!a-z0-9-]*) return 1 ;;
+    esac
+    [ "${#name}" -le 63 ]
+}
+
+generate_name() {
+    random_source=${AD5M_DEVICE_NAME_RANDOM_SOURCE:-/dev/urandom}
+    [ -r "$random_source" ] || return 1
+
+    suffix=$(dd if="$random_source" bs=8 count=1 2>/dev/null | \
+        od -An -tx1 | tr -d '[:space:]') || return 1
+    [ "${#suffix}" -eq 16 ] || return 1
+
+    name="ad5m-$suffix"
+    is_valid_name "$name" || return 1
+    printf '%s\n' "$name"
+}
+
+case "${1:-}" in
+    generate) generate_name ;;
+    validate)
+        [ "$#" -eq 2 ] && is_valid_name "$2"
+        ;;
+    *)
+        echo "Usage: $0 {generate|validate <hostname>}" >&2
+        exit 2
+        ;;
+esac

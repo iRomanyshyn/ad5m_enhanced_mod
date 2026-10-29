@@ -130,6 +130,18 @@ check_no_usb_root_overlay() {
         ! grep -Eq '(/media/klipper_mod|rsync[[:space:]].*[[:space:]]/)' "$install_steps"
 }
 
+check_device_name_generator() {
+    local generator=$1 fixture=$2 generated
+
+    printf '\000\021\042\063\104\125\146\167' > "$fixture"
+    generated=$(AD5M_DEVICE_NAME_RANDOM_SOURCE="$fixture" "$generator" generate) || return 1
+    [[ "$generated" == "ad5m-0011223344556677" ]] || return 1
+    "$generator" validate "$generated" &&
+        ! "$generator" validate 'AD5M' &&
+        ! "$generator" validate 'localhost' &&
+        ! "$generator" validate 'ad5m.bad'
+}
+
 check_variant_declaration "$repo_root/Makefile" || \
     fail "supported variants must be exactly 'lite'"
 pass "Makefile declares lite as the sole variant"
@@ -204,6 +216,16 @@ if ! check_no_usb_root_overlay "$host_init" "$install_steps"; then
     fail "installer must not bind a USB medium into the chroot or copy it into root"
 fi
 pass "installer has no arbitrary USB root-overlay path"
+
+device_name_generator="$repo_root/build_overlays/common/usr/libexec/ad5m-device-name"
+[[ -x "$device_name_generator" ]] || fail "missing executable device-name generator"
+if ! check_device_name_generator "$device_name_generator" "$tmp_dir/device-name-random"; then
+    fail "device-name generator must use validated random hexadecimal names"
+fi
+grep -Fq '[ ! -e "$static_dir/etc/hostname" ]' "$install_steps" && \
+    grep -Fq '/usr/libexec/ad5m-device-name generate' "$install_steps" || \
+    fail "hostname generation must run only before fresh static-state creation"
+pass "fresh installations generate a validated persistent hostname without renaming existing devices"
 
 usb_script_fixture="$tmp_dir/S00klipper_mod-usb-script"
 printf '%s\n' '/bin/sh /mnt/mod_debug.sh' > "$usb_script_fixture"
