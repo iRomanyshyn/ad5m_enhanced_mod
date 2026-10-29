@@ -272,7 +272,7 @@ pass "Moonraker seed enables first-claim setup then credentialed access"
 bash -n "$build_wrapper"
 pass "top-level build wrapper has valid Bash syntax"
 
-shell_roots=(build_scripts build_overlays device_files)
+shell_roots=(build_scripts build_overlays device_files tools)
 shell_count=1
 while IFS= read -r -d '' file; do
     [[ "$file" == "$build_wrapper" ]] && continue
