@@ -11,7 +11,7 @@ Klipper Mod for the AD5M is designed to be fully removable and not break any fun
 The mod uses the same installation mechanism as the stock software:
 1) Download the latest `Adventurer5M-KlipperMod*.tgz` update file from the [Release](https://github.com/xblax/flashforge_ad5m_klipper_mod/releases) page onto a USB flash drive.
 2) Plug in the drive before starting the printer
-3) During installation, the MCU firmware is updated to match the Klipper version used by the mod 
+3) The base image does **not** automatically flash either MCU during install or boot. MCU work is a separate, recovery-gated operation.
 4) Successful installation will be indicated on the display when finished
 
 The mod installer currently requires that printers were updated to at least version 2.4.5 of the stock Flashforge firmware. Please check the release page for versions that are known to work.
@@ -22,20 +22,19 @@ After installation the printer will by default start the Klipper Mod system inst
 
 The installation archives are identical to the regular 5M. They must be named `Adventurer5MPro-*.tgz`, otherwise the install files are not detected by the 5M Pro printers.
 
-### Install Custom Files
-
-The Klipper Mod installer has a mechanism to install custom files from USB flash drive during the installation. All files that are put inside the `klipper_mod` folder will be copied to the same path in the mod system as inside the `klipper_mod` folder. 
-
-> **Example**  
-> A file `klipper_mod/var/lib/iwd/MyWifi.psk` on the USB drive will be copied to `/var/lib/iwd/MyWifi.psk` during installation.
-
-This mechanism can also be used to overwrite default config files. Check the [Linux](LINUX.md) documentation page for more info about the file system layout.
-
 ### Initial Network Setup
 
-If no custom configuration is provided the mod is pre-configured for DHCP only. Connect the printer via Ethernet and use your home router web interface to find the IP that was auto-assigned to the printer.
+The mod is pre-configured for DHCP. On a fresh installation it generates and
+persists a local hostname such as `ad5m-a1b2c3d4e5f60708`. After successful
+installation, open `AD5M-ADDRESS.txt` on the same USB drive for ready-to-copy
+browser, Moonraker/slicer, and camera URLs using that name. Those `.local`
+addresses require mDNS support on the local network; the printer must boot
+before they resolve.
 
-It is also possible to install a custom network configuration via the custom file installation mechanism described above. Create a custom [`/etc/network/interfaces`](https://manpages.debian.org/bullseye/ifupdown/interfaces.5.en.html) file or install a [custom WiFi config](WIFI.md) to `/var/lib/iwd`.
+If mDNS is unavailable on a client, use the router's DHCP lease view as a
+fallback. Do not use arbitrary USB files to change the chroot: that legacy
+root-overlay feature was removed. Network and Wi-Fi configuration needs a
+separate owner-controlled workflow.
 
 ### Install Log File
 
@@ -53,7 +52,7 @@ Updating the mod works similar to the installation. Be aware that that most loca
 To remove all persistent files, [Uninstall](UNINSTALL.md) the mod before re-installing.
 
 > [!WARNING]
-> If you have important files like custom printer configs make sure to create a backup before updating. You can use the custom file installation mechanism to re-install them from the USB drive.
+> If you have important files like custom printer configs make sure to create a backup before updating. Arbitrary USB root overlays are intentionally unsupported.
 
 ## Dual Boot
 
@@ -63,4 +62,6 @@ There are multiple options to boot the stock Flashforge software, while the mod 
 - SSH: log in via SSH and run the command `reboot-stock-system` to restart and boot the stock software
 - Klipper Macro: Execute the Klipper macro `REBOOT_STOCK_SYSTEM`
 
-When using the dual boot feature, the MCU firmware is automatically downgraded to stock firmware and again updated when starting Klipper Mod.
+The retained legacy stock-boot/uninstall recovery path has not yet received
+board-specific recovery validation. The base image no longer automatically
+updates MCUs when starting Klipper Mod.

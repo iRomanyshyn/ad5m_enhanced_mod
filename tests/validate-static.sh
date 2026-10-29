@@ -67,6 +67,16 @@ check_installer_preflight_order() {
         free_space_line < destructive_line ))
 }
 
+check_installer_address_record() {
+    local installer=$1
+
+    grep -Fq 'INSTALL_MEDIA_MOUNTED=0' "$installer" &&
+        grep -Fq 'INSTALL_MEDIA_MOUNTED=1' "$installer" &&
+        grep -Fq 'DEVICE_NAME_FILE="$MOD_DIR/static/etc/hostname"' "$installer" &&
+        grep -Fq 'AD5M-ADDRESS.txt' "$installer" &&
+        grep -Fq 'ad5m-device-name" validate "$DEVICE_NAME"' "$installer"
+}
+
 check_loadcell_diagnostic_patch() {
     local patch=$1
 
@@ -240,6 +250,10 @@ if ! check_installer_preflight_order "$installer"; then
     fail "installer must validate its archive and free space before deleting a chroot"
 fi
 pass "installer preflight precedes destructive chroot replacement"
+if ! check_installer_address_record "$installer"; then
+    fail "installer must write a validated non-secret local-address record to its mounted USB medium"
+fi
+pass "installer writes a validated local-address record to its mounted USB medium"
 
 loadcell_patch="$repo_root/build_scripts/buildroot/package/klipper/0004-Remove-unsafe-loadcell-raw-diagnostic.patch"
 [[ -f "$loadcell_patch" ]] || fail "missing loadcell diagnostic safety patch"
