@@ -86,6 +86,20 @@ check_loadcell_diagnostic_patch() {
         grep -Fq -- '-DECL_COMMAND(command_flashforge_loadcell_test_cmd,' "$patch"
 }
 
+check_legacy_kernel_module_inventory() {
+    local module_dir=$1 manifest=$2 init_script=$3 expected actual
+
+    [[ -d "$module_dir" && -f "$manifest" ]] || return 1
+    (cd "$module_dir" && sha256sum -c "$manifest" >/dev/null) || return 1
+    expected=$(awk '{print $2}' "$manifest" | sort)
+    actual=$(find "$module_dir" -maxdepth 1 -type f -name '*.ko' -printf '%f\n' | sort)
+    [[ "$actual" == "$expected" ]] || return 1
+    grep -Fqx 'insmod /lib/modules/cbc.ko' "$init_script" &&
+        grep -Fqx 'insmod /lib/modules/md4.ko' "$init_script" &&
+        grep -Fqx 'insmod /lib/modules/sha512_generic.ko' "$init_script" &&
+        ! grep -Eq '^insmod[[:space:]]+/lib/modules/\$' "$init_script"
+}
+
 check_ntp_default_policy() {
     local init_script=$1 config=$2
 
@@ -287,6 +301,14 @@ if ! check_loadcell_diagnostic_patch "$loadcell_patch"; then
     fail "loadcell safety patch must remove raw G-code forwarding and bound MCU queue copies"
 fi
 pass "loadcell diagnostic raw command is removed and queue copy is bounded"
+
+kernel_module_dir="$repo_root/build_overlays/common/lib/modules"
+kernel_module_manifest="$repo_root/tests/fixtures/legacy-kernel-modules/sha256sums"
+chroot_init="$repo_root/build_overlays/common/etc/init/init_chroot.sh"
+if ! check_legacy_kernel_module_inventory "$kernel_module_dir" "$kernel_module_manifest" "$chroot_init"; then
+    fail "legacy kernel-module inventory must match its recorded hashes and fixed boot paths"
+fi
+pass "legacy kernel modules match the recorded fixed-path inventory"
 
 ntp_init="$repo_root/build_overlays/common/etc/init.d/S45ntpd"
 ntp_config="$repo_root/build_overlays/common/etc/default/ad5m-ntp"
