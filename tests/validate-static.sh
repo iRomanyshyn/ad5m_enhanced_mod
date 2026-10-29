@@ -89,11 +89,37 @@ check_loadcell_diagnostic_patch() {
 check_ntp_default_policy() {
     local init_script=$1 config=$2
 
-    grep -Fq 'NTP_CONFIG="/etc/default/ad5m-ntp"' "$init_script" &&
+    grep -Fq 'NTP_CONFIG="${AD5M_NTP_CONFIG:-/etc/default/ad5m-ntp}"' "$init_script" &&
+        grep -Fq 'read_config_value() {' "$init_script" &&
+        ! grep -Fq '. "$NTP_CONFIG"' "$init_script" &&
+        grep -Fq 'if [ "$NTP_CONFIG_VALID" != "1" ]; then' "$init_script" &&
         grep -Fq 'if [ "$NTP_ENABLED" != "1" ]; then' "$init_script" &&
         grep -Fq 'NTP_ENABLED=0' "$config" &&
         grep -Fq 'NTP_SERVER=' "$config" &&
         ! grep -Eqi '(pool\.ntp\.org|[0-9]+\.pool\.ntp\.org)' "$init_script" "$config"
+}
+
+check_ntp_config_is_not_executed() {
+    local init_script=$1 marker=$2 hostile_config=$3 log_file=$4
+
+    printf '%s\n' 'NTP_ENABLED=0$(touch "'"$marker"'" )' 'NTP_SERVER=' > "$hostile_config"
+    if AD5M_NTP_CONFIG="$hostile_config" "$init_script" start >"$log_file" 2>&1; then
+        return 1
+    fi
+    [[ ! -e "$marker" ]] && grep -Fq 'invalid NTP configuration' "$log_file"
+}
+
+check_egress_profile() {
+    local init_dir=$1 helper_dir=$2 moonraker_config=$3 overlay_dir=$4 initiators cron_files
+
+    initiators=$(find "$init_dir" "$helper_dir" -type f ! -path "$init_dir/S45ntpd" -exec \
+        grep -nE '(^|[;|&[:space:]])(curl|wget|nc|netcat|telnet|ssh|scp|sftp|ftp|tftp|ntpd)[[:space:]]' {} + \
+        2>/dev/null || true)
+    [[ -z "$initiators" ]] || return 1
+    cron_files=$(find "$overlay_dir" -type f \( -path '*/cron/*' -o -name crontab \) -print)
+    [[ -z "$cron_files" ]] || return 1
+    grep -Fqx 'provider: none' "$moonraker_config" &&
+        ! grep -Eq '^\[(update_manager|announcements|mqtt)\]$' "$moonraker_config"
 }
 
 check_root_password_policy() {
@@ -269,7 +295,20 @@ ntp_config="$repo_root/build_overlays/common/etc/default/ad5m-ntp"
 if ! check_ntp_default_policy "$ntp_init" "$ntp_config"; then
     fail "NTP must be opt-in with no public default endpoint"
 fi
-pass "NTP is disabled by default and has no public default endpoint"
+if ! check_ntp_config_is_not_executed "$ntp_init" "$tmp_dir/ntp-marker" \
+    "$tmp_dir/ntp-hostile.conf" "$tmp_dir/ntp-hostile.log"; then
+    fail "NTP configuration must be parsed as data, not executed as shell"
+fi
+pass "NTP is disabled by default, has no public default endpoint, and is parsed as data"
+
+init_dir="$repo_root/build_overlays/common/etc/init.d"
+helper_dir="$repo_root/build_overlays/common/etc/init"
+moonraker_config="$repo_root/printer_configs/moonraker.conf"
+[[ -f "$moonraker_config" ]] || fail "missing Moonraker seed configuration"
+if ! check_egress_profile "$init_dir" "$helper_dir" "$moonraker_config" "$repo_root/build_overlays"; then
+    fail "selected profile must not add an unmanaged boot/cron egress client or Moonraker egress component"
+fi
+pass "selected profile has no project-owned boot/cron egress client beyond opt-in NTP"
 
 root_config="$repo_root/build_scripts/buildroot/configs/base"
 root_generator="$repo_root/build_scripts/create-root-password-hash.sh"
@@ -281,8 +320,6 @@ if ! check_root_password_policy "$root_config" "$build_wrapper" "$root_generator
 fi
 pass "root password is a per-printer ignored build input, not a shared config value"
 
-moonraker_config="$repo_root/printer_configs/moonraker.conf"
-[[ -f "$moonraker_config" ]] || fail "missing Moonraker seed configuration"
 if ! check_moonraker_first_claim_policy "$moonraker_config"; then
     fail "Moonraker must use the explicit first-claim profile with force_logins and API keys"
 fi

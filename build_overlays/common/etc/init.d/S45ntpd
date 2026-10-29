@@ -3,19 +3,48 @@
 # Starts BusyBox ntpd only after explicit local configuration.  The printer is
 # intentionally usable without outbound time synchronization.
 #
-NTP_CONFIG="/etc/default/ad5m-ntp"
+NTP_CONFIG="${AD5M_NTP_CONFIG:-/etc/default/ad5m-ntp}"
 PID_FILE=/run/ntpd.pid
 
+read_config_value() {
+    key=$1
+    match_count=$(sed -n "/^$key=/p" "$NTP_CONFIG" | wc -l)
+    if [ "$match_count" -ne 1 ]; then
+        return 1
+    fi
+    sed -n "s/^$key=//p" "$NTP_CONFIG"
+}
+
+NTP_CONFIG_VALID=1
 if [ -r "$NTP_CONFIG" ]; then
-    # This file is part of the root-owned system configuration.  It contains
-    # simple shell assignments maintained by the future owner-facing flow.
-    . "$NTP_CONFIG"
+    NTP_ENABLED=$(read_config_value NTP_ENABLED) || NTP_CONFIG_VALID=0
+    NTP_SERVER=$(read_config_value NTP_SERVER) || NTP_CONFIG_VALID=0
+else
+    NTP_ENABLED=0
+    NTP_SERVER=
 fi
 
 : "${NTP_ENABLED:=0}"
 : "${NTP_SERVER:=}"
+case "$NTP_ENABLED" in
+    0|1)
+        ;;
+    *)
+        NTP_CONFIG_VALID=0
+        ;;
+esac
+case "$NTP_SERVER" in
+    *[!A-Za-z0-9._:-]*)
+        NTP_CONFIG_VALID=0
+        ;;
+esac
 
 start() {
+	if [ "$NTP_CONFIG_VALID" != "1" ]; then
+		printf "BusyBox ntpd not started (invalid NTP configuration)\n" >&2
+		return 1
+	fi
+
 	if [ "$NTP_ENABLED" != "1" ]; then
 		printf "BusyBox ntpd disabled (no configured time source)\n"
 		return 0
